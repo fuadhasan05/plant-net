@@ -43,6 +43,8 @@ const client = new MongoClient(process.env.MONGODB_URI, {
   },
 })
 async function run() {
+  const db = client.db('plantNet')
+  const plantsCollection = db.collection('plants')
   try {
     // Generate jwt token
     app.post('/jwt', async (req, res) => {
@@ -73,6 +75,19 @@ async function run() {
       }
     })
 
+    // add a plant in DB
+    app.post('/add-plant', async (req, res) => {
+      const plant = req.body 
+      const result = await plantsCollection.insertOne(plant)
+      res.send({ message: 'Plant added successfully'})
+    })
+
+    // Get all plants
+    app.get('/plants', async (req, res) => {
+      const plants = await plantsCollection.find().toArray()
+      res.send(plants)
+    })
+    
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
     console.log(
