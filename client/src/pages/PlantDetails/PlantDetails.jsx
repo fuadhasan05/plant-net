@@ -5,11 +5,14 @@ import PurchaseModal from '../../components/Modal/PurchaseModal'
 import { useState } from 'react'
 import { useLoaderData } from 'react-router'
 import useAuth from '../../hooks/useAuth'
+import useRole from '../../hooks/useRole'
+import LoadingSpinner from '../../components/Shared/LoadingSpinner'
 
 const PlantDetails = () => {
   const {user} = useAuth()
   const plant = useLoaderData()
   const [isOpen, setIsOpen] = useState(false)
+  const [role, isRoleLoading] = useRole()
 
   if (!plant || typeof plant !== 'object') return <div>No Data Found</div>
   const { name, category, price, quantity, image, _id, seller } = plant || {}
@@ -18,6 +21,8 @@ const PlantDetails = () => {
   const closeModal = () => {
     setIsOpen(false)
   }
+
+  if(isRoleLoading) return <LoadingSpinner/>
 
   return (
     <Container>
@@ -89,7 +94,7 @@ const PlantDetails = () => {
             <p className='font-bold text-3xl text-gray-500'>Price: {price}$</p>
             <div>
               <Button 
-              disabled={!user || user?.email === seller?.email}
+              disabled={!user || user?.email === seller?.email || role !== 'customer'}
               onClick={() => setIsOpen(true)} label={user? 'Purchase' : 'Login to purchase'} />
             </div>
           </div>

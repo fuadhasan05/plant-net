@@ -3,22 +3,25 @@ import { GrLogout } from 'react-icons/gr'
 import { FcSettings } from 'react-icons/fc'
 import { AiOutlineBars } from 'react-icons/ai'
 import MenuItem from './Menu/MenuItem'
-
 import useAuth from '../../../hooks/useAuth'
-
 import AdminMenu from './Menu/AdminMenu'
 import { Link } from 'react-router'
 import SellerMenu from './Menu/SellerMenu'
 import CustomerMenu from './Menu/CustomerMenu'
 import logo from '../../../assets/images/logo-flat.png'
+import useRole from '../../../hooks/useRole'
+import LoadingSpinner from '../../Shared/LoadingSpinner'
+
 const Sidebar = () => {
   const { logOut } = useAuth()
   const [isActive, setActive] = useState(false)
+  const [role, isRoleLoading] = useRole()
 
   // Sidebar Responsive Handler
   const handleToggle = () => {
     setActive(!isActive)
   }
+  if (isRoleLoading) return <LoadingSpinner/>
   return (
     <>
       {/* Small Screen Navbar */}
@@ -70,10 +73,11 @@ const Sidebar = () => {
           <div className='flex flex-col justify-between flex-1 mt-6'>
             <nav>
               {/*  Menu Items */}
-              <CustomerMenu />
-              <SellerMenu />
+              {role === 'customer' && <CustomerMenu />}
+              {role === 'seller' && <SellerMenu />}
 
-              <AdminMenu />
+              {role === 'admin' && <AdminMenu />}
+                            
             </nav>
           </div>
         </div>

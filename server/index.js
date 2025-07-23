@@ -139,6 +139,16 @@ async function run() {
       res.send(result);
     });
 
+    // get a user's role
+    app.get("/user/role/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await usersCollection.findOne({email});
+      if (!user) {
+        return res.status(404).send({ message: "User not found" });
+      }
+      res.send({ role: user?.role });
+    });
+
     // Save order data in DB
     app.post("/order", async (req, res) => {
       const orderData = req.body;
