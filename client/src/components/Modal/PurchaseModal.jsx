@@ -2,10 +2,15 @@ import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import useAuth from "../../hooks/useAuth";
 import { useState } from "react";
 import { useEffect } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import CheckoutForm from "../Form/CheckoutForm";
 
-const PurchaseModal = ({ closeModal, isOpen, plant, seller }) => {
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PK_KEY);
+
+const PurchaseModal = ({ closeModal, isOpen, plant }) => {
   const { user } = useAuth();
-  const { name, category, price, quantity, image } = plant || {};
+  const { name, category, price, quantity, image, seller } = plant || {};
   const [selectedQuantity, setSelectedQuantity] = useState(1);
   const [totalPrice, setTotalPrice] = useState(price);
   const [orderData, setOrderData] = useState({
@@ -23,14 +28,15 @@ const PurchaseModal = ({ closeModal, isOpen, plant, seller }) => {
     plantImage: image,
   });
   useEffect(() => {
-    setOrderData((prev) => ({
-      ...prev,
-      customer: {
-        name: user?.displayName,
-        email: user?.email,
-        image: user?.photoURL,
-      },
-    }));
+    if (user)
+      setOrderData((prev) => ({
+        ...prev,
+        customer: {
+          name: user?.displayName,
+          email: user?.email,
+          image: user?.photoURL,
+        },
+      }));
   }, [user]);
 
   const handleQuantity = (value) => {
@@ -44,10 +50,6 @@ const PurchaseModal = ({ closeModal, isOpen, plant, seller }) => {
       quantity: totalQuantity,
       price: calculatedPrice,
     }));
-  };
-
-  const handleOrder = () => {
-    console.log(orderData);
   };
 
   return (
@@ -112,7 +114,14 @@ const PurchaseModal = ({ closeModal, isOpen, plant, seller }) => {
                 Total Price: {totalPrice}
               </p>
             </div>
-            <button onClick={handleOrder} className="px-2 py-1 bg-green-500">Order Now</button>
+            {/* Stripe Checkout Form */}
+            <Elements stripe={stripePromise}>
+              <CheckoutForm
+                closeModal={closeModal}
+                orderData={orderData}
+                totalPrice={totalPrice}
+              />
+            </Elements>
           </DialogPanel>
         </div>
       </div>
