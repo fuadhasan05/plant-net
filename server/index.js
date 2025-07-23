@@ -47,6 +47,7 @@ async function run() {
   const db = client.db("plantNet");
   const plantsCollection = db.collection("plants");
   const ordersCollection = db.collection("orders");
+  const usersCollection = db.collection("users");
   try {
     // Generate jwt token
     app.post("/jwt", async (req, res) => {
@@ -114,6 +115,28 @@ async function run() {
         },
       });
       res.send({ clientSecret: client_secret });
+    });
+
+    // save or update a user info in DB
+    app.post("/user", async (req, res) => {
+      const userData = req.body;
+      userData.role = "customer";
+      userData.createdAt = new Date();
+      userData.lastLogin = new Date();
+      const query = { email: userData?.email };
+
+      const existingUser = await usersCollection.findOne(query);
+
+      if (!!existingUser) {
+        const result = await usersCollection.updateOne(
+          query ,
+          { $set: { lastLogin: new Date() } }
+        );
+        return res.send(result);
+      }
+
+      const result = await usersCollection.insertOne(userData);
+      res.send(result);
     });
 
     // Save order data in DB
