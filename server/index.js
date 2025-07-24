@@ -128,10 +128,9 @@ async function run() {
       const existingUser = await usersCollection.findOne(query);
 
       if (!!existingUser) {
-        const result = await usersCollection.updateOne(
-          query ,
-          { $set: { lastLogin: new Date() } }
-        );
+        const result = await usersCollection.updateOne(query, {
+          $set: { lastLogin: new Date() },
+        });
         return res.send(result);
       }
 
@@ -142,7 +141,7 @@ async function run() {
     // get a user's role
     app.get("/user/role/:email", async (req, res) => {
       const email = req.params.email;
-      const user = await usersCollection.findOne({email});
+      const user = await usersCollection.findOne({ email });
       if (!user) {
         return res.status(404).send({ message: "User not found" });
       }
@@ -153,6 +152,22 @@ async function run() {
     app.post("/order", async (req, res) => {
       const orderData = req.body;
       const result = await ordersCollection.insertOne(orderData);
+      res.send(result);
+    });
+
+    // update order quantity
+    app.patch("/quantity-update/:id", async (req, res) => {
+      const id = req.params.id;
+      const { quantityToUpdate, status } = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $inc: {
+          quantity:
+            status === "increase" ? quantityToUpdate : -quantityToUpdate,
+          // updatedAt: new Date(),
+        },
+      };
+      const result = await plantsCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
 

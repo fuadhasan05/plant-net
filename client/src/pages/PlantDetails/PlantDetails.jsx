@@ -1,110 +1,132 @@
-import Container from '../../components/Shared/Container'
-import Heading from '../../components/Shared/Heading'
-import Button from '../../components/Shared/Button/Button'
-import PurchaseModal from '../../components/Modal/PurchaseModal'
-import { useState } from 'react'
-import { useLoaderData } from 'react-router'
-import useAuth from '../../hooks/useAuth'
-import useRole from '../../hooks/useRole'
-import LoadingSpinner from '../../components/Shared/LoadingSpinner'
+import Container from "../../components/Shared/Container";
+import Heading from "../../components/Shared/Heading";
+import Button from "../../components/Shared/Button/Button";
+import PurchaseModal from "../../components/Modal/PurchaseModal";
+import { useState } from "react";
+import { useParams } from "react-router";
+import useAuth from "../../hooks/useAuth";
+import useRole from "../../hooks/useRole";
+import LoadingSpinner from "../../components/Shared/LoadingSpinner";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 const PlantDetails = () => {
-  const {user} = useAuth()
-  const plant = useLoaderData()
-  const [isOpen, setIsOpen] = useState(false)
-  const [role, isRoleLoading] = useRole()
+  const { id } = useParams();
+  const { user } = useAuth();
+  const [role, isRoleLoading] = useRole();
 
-  if (!plant || typeof plant !== 'object') return <div>No Data Found</div>
-  const { name, category, price, quantity, image, _id, seller } = plant || {}
-  
+  const {
+    data: plant,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["plant", id],
+    queryFn: async () => {
+      const { data } = await axios(
+        `${import.meta.env.VITE_API_URL}/plant/${id}`
+      );
+      return data;
+    },
+  });
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!plant || typeof plant !== "object") return <div>No Data Found</div>;
+  const { name, category, price, quantity, image, _id, seller } = plant || {};
 
   const closeModal = () => {
-    setIsOpen(false)
-  }
+    setIsOpen(false);
+  };
 
-  if(isRoleLoading) return <LoadingSpinner/>
+  if (isRoleLoading || isLoading) return <LoadingSpinner />;
 
   return (
     <Container>
-      <div className='mx-auto flex flex-col lg:flex-row justify-between w-full gap-12'>
+      <div className="mx-auto flex flex-col lg:flex-row justify-between w-full gap-12">
         {/* Header */}
-        <div className='flex flex-col gap-6 flex-1'>
+        <div className="flex flex-col gap-6 flex-1">
           <div>
-            <div className='w-full overflow-hidden rounded-xl'>
+            <div className="w-full overflow-hidden rounded-xl">
               <img
-                className='object-cover w-full'
+                className="object-cover w-full"
                 src={image}
-                alt='header image'
+                alt="header image"
               />
             </div>
           </div>
         </div>
-        <div className='md:gap-10 flex-1'>
+        <div className="md:gap-10 flex-1">
           {/* Plant Info */}
-          <Heading
-            title={name}
-            subtitle={`Category: ${category}`}
-          />
-          <hr className='my-6' />
+          <Heading title={name} subtitle={`Category: ${category}`} />
+          <hr className="my-6" />
           <div
-            className='
-          text-lg font-light text-neutral-500'
+            className="
+          text-lg font-light text-neutral-500"
           >
             Professionally deliver sticky testing procedures for next-generation
             portals. Objectively communicate just in time infrastructures
             before.
           </div>
-          <hr className='my-6' />
+          <hr className="my-6" />
 
           <div
-            className='
+            className="
                 text-xl 
                 font-semibold 
                 flex 
                 flex-row 
                 items-center
                 gap-2
-              '
+              "
           >
             <div>Seller: {seller?.name}</div>
 
             <img
-              className='rounded-full'
-              height='30'
-              width='30'
-              alt='Avatar'
-              referrerPolicy='no-referrer'
+              className="rounded-full"
+              height="30"
+              width="30"
+              alt="Avatar"
+              referrerPolicy="no-referrer"
               src={seller?.image}
             />
           </div>
-          <hr className='my-6' />
+          <hr className="my-6" />
           <div>
             <p
-              className='
+              className="
                 gap-4 
                 font-light
                 text-neutral-500
-              '
+              "
             >
               Quantity: {quantity} Units Left Only!
             </p>
           </div>
-          <hr className='my-6' />
-          <div className='flex justify-between'>
-            <p className='font-bold text-3xl text-gray-500'>Price: {price}$</p>
+          <hr className="my-6" />
+          <div className="flex justify-between">
+            <p className="font-bold text-3xl text-gray-500">Price: {price}$</p>
             <div>
-              <Button 
-              disabled={!user || user?.email === seller?.email || role !== 'customer'}
-              onClick={() => setIsOpen(true)} label={user? 'Purchase' : 'Login to purchase'} />
+              <Button
+                disabled={
+                  !user || user?.email === seller?.email || role !== "customer"
+                }
+                onClick={() => setIsOpen(true)}
+                label={user ? "Purchase" : "Login to purchase"}
+              />
             </div>
           </div>
-          <hr className='my-6' />
+          <hr className="my-6" />
 
-          <PurchaseModal plant={plant} closeModal={closeModal} isOpen={isOpen} />
+          <PurchaseModal
+            plant={plant}
+            closeModal={closeModal}
+            isOpen={isOpen}
+            fetchPlant={refetch}
+          />
         </div>
       </div>
     </Container>
-  )
-}
+  );
+};
 
-export default PlantDetails
+export default PlantDetails;
