@@ -196,6 +196,20 @@ async function run() {
       res.send(result);
     });
 
+    // become a seller
+    app.patch("/become-seller-request/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const updateDoc = {
+        $set: {
+          status: "requested",
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
